@@ -1,0 +1,56 @@
+# ===============================================================================
+# Global Emissions Dashboard - Procfile
+# ===============================================================================
+#
+# This Procfile configures process types for deployment on:
+# - Heroku
+# - Railway
+# - Render
+# - Dokku
+# - Any Procfile-compatible PaaS
+#
+# Usage:
+#   heroku ps:scale web=1 worker=0
+#   railway up
+#
+# ===============================================================================
+
+# =============================================================================
+# WEB PROCESS - Main Application Server
+# =============================================================================
+# FastAPI backend served with Uvicorn
+# $PORT is provided by the platform (default: 8000)
+
+web: uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2
+
+# =============================================================================
+# WORKER PROCESS - Background Tasks (Optional)
+# =============================================================================
+# Run ETL pipeline for data updates
+# Enable with: heroku ps:scale worker=1
+
+worker: python pipeline/merge_data.py --skip-download
+
+# =============================================================================
+# RELEASE PROCESS - One-time Setup Tasks
+# =============================================================================
+# Runs automatically on each deployment
+# Downloads latest data and prepares database
+
+release: python pipeline/merge_data.py
+
+# =============================================================================
+# ALTERNATIVE CONFIGURATIONS
+# =============================================================================
+
+# Gunicorn (production-grade ASGI server)
+# web: gunicorn api.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+
+# With Streamlit dashboard instead of React frontend
+# web: streamlit run dashboard/app.py --server.port $PORT --server.address 0.0.0.0
+
+# With Dash dashboard
+# web: gunicorn dashboard.app:server --bind 0.0.0.0:$PORT
+
+# Scheduled data refresh (use Heroku Scheduler or similar)
+# scheduler: python pipeline/merge_data.py --force

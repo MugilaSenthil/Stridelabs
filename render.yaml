@@ -1,0 +1,23 @@
+# Render Blueprint for Backend Deployment
+# https://render.com/docs/blueprint-spec
+
+services:
+  # FastAPI Backend Service
+  - type: web
+    name: emissions-api
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r public/templates/requirements.txt
+    startCommand: uvicorn public.templates.api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: "https://your-app.vercel.app,http://localhost:5173"
+    autoDeploy: true
